@@ -43,6 +43,21 @@ table {
   border-collapse: collapse;
 }
 
+.section table {
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+}
+
+.section table thead,
+.section table tbody,
+.section table tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
 thead {
   background: #667eea;
   color: white;
