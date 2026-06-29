@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PRODE Eurotrip 3021</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>⚽ PRODE Eurotrip 3021</h1>
+
+    <div class="section">
+      <h2>Rankings</h2>
+      <table id="rankings-table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Player</th>
+            <th>Points</th>
+            <th>Exactos</th>
+            <th>Acertados</th>
+            <th>Errados</th>
+          </tr>
+        </thead>
+        <tbody id="rankings-body"></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2>Rankings Evolution</h2>
+      <canvas id="rankings-chart"></canvas>
+    </div>
+
+    <div class="section">
+      <h2>Add New Match</h2>
+      <div class="add-match-form">
+        <input type="text" id="teamA" placeholder="ARG" maxlength="3">
+        <span>vs</span>
+        <input type="text" id="teamB" placeholder="BRA" maxlength="3">
+        <button onclick="addMatch()">Add Match</button>
+      </div>
+      <p style="color: #666; font-size: 12px; margin-top: 10px;">Use 3-letter codes: ARG, BRA, ESP, GER, etc.</p>
+    </div>
+
+    <div class="section">
+      <h2>Matches</h2>
+      <div id="matches-container"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

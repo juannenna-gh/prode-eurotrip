@@ -1,0 +1,499 @@
+const PLAYERS = ['Martin', 'Joaquin', 'Pablo', 'Franco', 'Fede', 'Juan'];
+
+const PLAYER_COLORS = {
+  'Martin': '#FF6384',
+  'Joaquin': '#36A2EB',
+  'Pablo': '#FFCE56',
+  'Franco': '#4BC0C0',
+  'Fede': '#9966FF',
+  'Juan': '#FF9F40'
+};
+
+let rankingsChart = null;
+
+const COUNTRIES = {
+  // CONMEBOL (South America)
+  'ARG': { name: 'Argentina', flag: '🇦🇷' },
+  'BRA': { name: 'Brasil', flag: '🇧🇷' },
+  'URU': { name: 'Uruguay', flag: '🇺🇾' },
+  'CHI': { name: 'Chile', flag: '🇨🇱' },
+  'COL': { name: 'Colombia', flag: '🇨🇴' },
+  'ECU': { name: 'Ecuador', flag: '🇪🇨' },
+  'PER': { name: 'Perú', flag: '🇵🇪' },
+  'PAR': { name: 'Paraguay', flag: '🇵🇾' },
+  'VEN': { name: 'Venezuela', flag: '🇻🇪' },
+  'BOL': { name: 'Bolivia', flag: '🇧🇴' },
+
+  // CONCACAF (North & Central America, Caribbean)
+  'MEX': { name: 'México', flag: '🇲🇽' },
+  'USA': { name: 'Estados Unidos', flag: '🇺🇸' },
+  'CAN': { name: 'Canadá', flag: '🇨🇦' },
+  'CRC': { name: 'Costa Rica', flag: '🇨🇷' },
+  'JAM': { name: 'Jamaica', flag: '🇯🇲' },
+  'PAN': { name: 'Panamá', flag: '🇵🇦' },
+  'HON': { name: 'Honduras', flag: '🇭🇳' },
+  'TRI': { name: 'Trinidad y Tobago', flag: '🇹🇹' },
+  'SLV': { name: 'El Salvador', flag: '🇸🇻' },
+  'CUB': { name: 'Cuba', flag: '🇨🇺' },
+  'HAI': { name: 'Haití', flag: '🇭🇹' },
+  'GUA': { name: 'Guatemala', flag: '🇬🇹' },
+
+  // UEFA (Europe)
+  'ESP': { name: 'España', flag: '🇪🇸' },
+  'FRA': { name: 'Francia', flag: '🇫🇷' },
+  'GER': { name: 'Alemania', flag: '🇩🇪' },
+  'ITA': { name: 'Italia', flag: '🇮🇹' },
+  'ENG': { name: 'Inglaterra', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
+  'POR': { name: 'Portugal', flag: '🇵🇹' },
+  'NED': { name: 'Países Bajos', flag: '🇳🇱' },
+  'BEL': { name: 'Bélgica', flag: '🇧🇪' },
+  'CRO': { name: 'Croacia', flag: '🇭🇷' },
+  'SUI': { name: 'Suiza', flag: '🇨🇭' },
+  'DEN': { name: 'Dinamarca', flag: '🇩🇰' },
+  'SWE': { name: 'Suecia', flag: '🇸🇪' },
+  'POL': { name: 'Polonia', flag: '🇵🇱' },
+  'UKR': { name: 'Ucrania', flag: '🇺🇦' },
+  'SRB': { name: 'Serbia', flag: '🇷🇸' },
+  'AUT': { name: 'Austria', flag: '🇦🇹' },
+  'CZE': { name: 'República Checa', flag: '🇨🇿' },
+  'WAL': { name: 'Gales', flag: '🏴󠁧󠁢󠁷󠁬󠁳󠁿' },
+  'SCO': { name: 'Escocia', flag: '🏴󠁧󠁢󠁳󠁣󠁴󠁿' },
+  'NOR': { name: 'Noruega', flag: '🇳🇴' },
+  'ROU': { name: 'Rumania', flag: '🇷🇴' },
+  'TUR': { name: 'Turquía', flag: '🇹🇷' },
+  'GRE': { name: 'Grecia', flag: '🇬🇷' },
+  'HUN': { name: 'Hungría', flag: '🇭🇺' },
+  'SVK': { name: 'Eslovaquia', flag: '🇸🇰' },
+  'NIR': { name: 'Irlanda del Norte', flag: '🇬🇧' },
+  'IRL': { name: 'Irlanda', flag: '🇮🇪' },
+  'ISL': { name: 'Islandia', flag: '🇮🇸' },
+  'FIN': { name: 'Finlandia', flag: '🇫🇮' },
+  'BIH': { name: 'Bosnia y Herzegovina', flag: '🇧🇦' },
+  'SVN': { name: 'Eslovenia', flag: '🇸🇮' },
+  'ALB': { name: 'Albania', flag: '🇦🇱' },
+  'MKD': { name: 'Macedonia del Norte', flag: '🇲🇰' },
+  'BUL': { name: 'Bulgaria', flag: '🇧🇬' },
+  'RUS': { name: 'Rusia', flag: '🇷🇺' },
+  'ISR': { name: 'Israel', flag: '🇮🇱' },
+
+  // AFC (Asia)
+  'JPN': { name: 'Japón', flag: '🇯🇵' },
+  'KOR': { name: 'Corea del Sur', flag: '🇰🇷' },
+  'IRN': { name: 'Irán', flag: '🇮🇷' },
+  'KSA': { name: 'Arabia Saudita', flag: '🇸🇦' },
+  'AUS': { name: 'Australia', flag: '🇦🇺' },
+  'QAT': { name: 'Catar', flag: '🇶🇦' },
+  'IRQ': { name: 'Irak', flag: '🇮🇶' },
+  'UAE': { name: 'Emiratos Árabes Unidos', flag: '🇦🇪' },
+  'CHN': { name: 'China', flag: '🇨🇳' },
+  'UZB': { name: 'Uzbekistán', flag: '🇺🇿' },
+  'THA': { name: 'Tailandia', flag: '🇹🇭' },
+  'VIE': { name: 'Vietnam', flag: '🇻🇳' },
+  'OMA': { name: 'Omán', flag: '🇴🇲' },
+  'JOR': { name: 'Jordania', flag: '🇯🇴' },
+  'BHR': { name: 'Baréin', flag: '🇧🇭' },
+  'PRK': { name: 'Corea del Norte', flag: '🇰🇵' },
+  'SYR': { name: 'Siria', flag: '🇸🇾' },
+  'KUW': { name: 'Kuwait', flag: '🇰🇼' },
+  'LIB': { name: 'Líbano', flag: '🇱🇧' },
+  'PAL': { name: 'Palestina', flag: '🇵🇸' },
+  'IND': { name: 'India', flag: '🇮🇳' },
+
+  // CAF (Africa)
+  'MAR': { name: 'Marruecos', flag: '🇲🇦' },
+  'TUN': { name: 'Túnez', flag: '🇹🇳' },
+  'EGY': { name: 'Egipto', flag: '🇪🇬' },
+  'SEN': { name: 'Senegal', flag: '🇸🇳' },
+  'NGA': { name: 'Nigeria', flag: '🇳🇬' },
+  'CMR': { name: 'Camerún', flag: '🇨🇲' },
+  'GHA': { name: 'Ghana', flag: '🇬🇭' },
+  'RSA': { name: 'Sudáfrica', flag: '🇿🇦' },
+  'CIV': { name: 'Costa de Marfil', flag: '🇨🇮' },
+  'ALG': { name: 'Argelia', flag: '🇩🇿' },
+  'MLI': { name: 'Mali', flag: '🇲🇱' },
+  'BFA': { name: 'Burkina Faso', flag: '🇧🇫' },
+  'GAB': { name: 'Gabón', flag: '🇬🇦' },
+  'CGO': { name: 'Congo', flag: '🇨🇬' },
+  'UGA': { name: 'Uganda', flag: '🇺🇬' },
+  'ZAM': { name: 'Zambia', flag: '🇿🇲' },
+  'CPV': { name: 'Cabo Verde', flag: '🇨🇻' },
+  'GNB': { name: 'Guinea-Bisáu', flag: '🇬🇼' },
+  'GUI': { name: 'Guinea', flag: '🇬🇳' },
+  'KEN': { name: 'Kenia', flag: '🇰🇪' },
+  'ANG': { name: 'Angola', flag: '🇦🇴' },
+  'BEN': { name: 'Benín', flag: '🇧🇯' },
+  'TOG': { name: 'Togo', flag: '🇹🇬' },
+  'ZIM': { name: 'Zimbabue', flag: '🇿🇼' },
+  'NAM': { name: 'Namibia', flag: '🇳🇦' },
+  'MOZ': { name: 'Mozambique', flag: '🇲🇿' },
+  'LBY': { name: 'Libia', flag: '🇱🇾' },
+  'MTN': { name: 'Mauritania', flag: '🇲🇷' },
+
+  // OFC (Oceania)
+  'NZL': { name: 'Nueva Zelanda', flag: '🇳🇿' },
+};
+
+function formatTeam(code) {
+  const country = COUNTRIES[code.toUpperCase()];
+  if (country) {
+    return `${country.flag} ${country.name}`;
+  }
+  return code;
+}
+
+async function loadRankings() {
+  const response = await fetch('/api/rankings');
+  const rankings = await response.json();
+
+  const tbody = document.getElementById('rankings-body');
+  tbody.innerHTML = rankings.map((r, index) => `
+    <tr>
+      <td>${index + 1}${index === 0 ? ' 👑' : ''}</td>
+      <td>${r.player}</td>
+      <td><strong>${r.points}</strong></td>
+      <td>${r.exactos}</td>
+      <td>${r.acertados}</td>
+      <td>${r.errados}</td>
+    </tr>
+  `).join('');
+
+  await loadRankingsChart();
+}
+
+async function loadRankingsChart() {
+  const matchesResponse = await fetch('/api/matches');
+  const matches = await matchesResponse.json();
+
+  const completedMatches = matches.filter(m => m.actualResult);
+
+  if (completedMatches.length === 0) {
+    const ctx = document.getElementById('rankings-chart');
+    if (rankingsChart) {
+      rankingsChart.destroy();
+      rankingsChart = null;
+    }
+    ctx.style.display = 'none';
+    return;
+  }
+
+  const pointsHistory = {};
+  PLAYERS.forEach(player => {
+    pointsHistory[player] = [0];
+  });
+
+  completedMatches.forEach(match => {
+    PLAYERS.forEach(player => {
+      const lastPoints = pointsHistory[player][pointsHistory[player].length - 1];
+      const prediction = match.predictions[player];
+      const points = calculatePoints(prediction, match.actualResult);
+      pointsHistory[player].push(lastPoints + points);
+    });
+  });
+
+  const labels = ['Start', ...completedMatches.map((m, i) => `Match ${i + 1}`)];
+
+  const datasets = PLAYERS.map(player => ({
+    label: player,
+    data: pointsHistory[player],
+    borderColor: PLAYER_COLORS[player],
+    backgroundColor: PLAYER_COLORS[player] + '20',
+    tension: 0.4,
+    borderWidth: 2
+  }));
+
+  const ctx = document.getElementById('rankings-chart');
+  ctx.style.display = 'block';
+
+  if (rankingsChart) {
+    rankingsChart.destroy();
+  }
+
+  rankingsChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      interaction: {
+        mode: 'index',
+        intersect: false,
+      },
+      plugins: {
+        legend: {
+          position: 'bottom',
+        },
+        title: {
+          display: false
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            stepSize: 1
+          }
+        }
+      }
+    }
+  });
+}
+
+async function loadMatches() {
+  const response = await fetch('/api/matches');
+  const matches = await response.json();
+
+  const container = document.getElementById('matches-container');
+
+  if (matches.length === 0) {
+    container.innerHTML = '<p style="color: #999;">No matches yet. Add one above!</p>';
+    return;
+  }
+
+  container.innerHTML = matches.map(match => `
+    <div class="match-card">
+      <div class="match-header" onclick="toggleMatch(${match.id})">
+        <div class="match-teams">${formatTeam(match.teamA)} vs ${formatTeam(match.teamB)}</div>
+        <div>
+          <span class="collapse-icon" id="collapse-${match.id}">▶</span>
+          <button class="save-all-btn" onclick="event.stopPropagation(); saveAll(${match.id})">Save All</button>
+          <button class="delete-btn" onclick="event.stopPropagation(); deleteMatch(${match.id})">Delete</button>
+        </div>
+      </div>
+
+      <div class="match-content" id="content-${match.id}" style="display: none;">
+        <div class="actual-result">
+          <label>Resultado Real:</label>
+          <input
+            type="text"
+            id="result-${match.id}"
+            placeholder="e.g., 2-1"
+            value="${match.actualResult || ''}"
+            ${match.actualResult ? 'readonly' : ''}
+          >
+          ${match.actualResult
+            ? `<button onclick="enableResultEdit(${match.id})">Edit</button>`
+            : `<button onclick="saveResult(${match.id})">Save</button>`
+          }
+        </div>
+
+        <div class="predictions-list">
+          ${PLAYERS.map(player => {
+            const prediction = match.predictions[player];
+            const points = calculatePoints(prediction, match.actualResult);
+            const pointsClass = !match.actualResult ? 'pending' :
+                               points === 4 ? 'exact' :
+                               points === 1 ? 'partial' : 'none';
+
+            return `
+              <div class="prediction-item">
+                <label>${player}:</label>
+                <input
+                  type="text"
+                  id="pred-${match.id}-${player}"
+                  placeholder="0-0"
+                  value="${prediction || ''}"
+                  ${prediction ? 'readonly' : ''}
+                >
+                ${prediction
+                  ? `<button onclick="enablePredictionEdit(${match.id}, '${player}')">Edit</button>`
+                  : `<button onclick="savePrediction(${match.id}, '${player}')">Save</button>`
+                }
+                <span class="points ${pointsClass}">${match.actualResult ? points + 'pt' : '-'}</span>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function calculatePoints(prediction, actual) {
+  if (!prediction || !actual) return 0;
+
+  const [predHome, predAway] = prediction.split('-').map(Number);
+  const [actHome, actAway] = actual.split('-').map(Number);
+
+  if (isNaN(predHome) || isNaN(predAway) || isNaN(actHome) || isNaN(actAway)) return 0;
+
+  if (predHome === actHome && predAway === actAway) {
+    return 3;
+  }
+
+  const predOutcome = predHome > predAway ? 'home' : predHome < predAway ? 'away' : 'draw';
+  const actOutcome = actHome > actAway ? 'home' : actHome < actAway ? 'away' : 'draw';
+
+  if (predOutcome === actOutcome) {
+    return 1;
+  }
+
+  return 0;
+}
+
+async function addMatch() {
+  const teamA = document.getElementById('teamA').value.trim().toUpperCase();
+  const teamB = document.getElementById('teamB').value.trim().toUpperCase();
+
+  if (!teamA || !teamB) {
+    alert('Please enter both teams');
+    return;
+  }
+
+  if (!COUNTRIES[teamA] || !COUNTRIES[teamB]) {
+    alert('Please use valid 3-letter country codes (e.g., ARG, BRA, ESP)');
+    return;
+  }
+
+  await fetch('/api/matches', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ teamA, teamB })
+  });
+
+  document.getElementById('teamA').value = '';
+  document.getElementById('teamB').value = '';
+
+  await refresh();
+}
+
+async function savePrediction(matchId, player) {
+  const input = document.getElementById(`pred-${matchId}-${player}`);
+  const prediction = input.value.trim();
+
+  if (!prediction) {
+    alert('Please enter a prediction');
+    return;
+  }
+
+  await fetch(`/api/matches/${matchId}/prediction`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ player, prediction })
+  });
+
+  await refresh();
+}
+
+async function enablePredictionEdit(matchId, player) {
+  const input = document.getElementById(`pred-${matchId}-${player}`);
+  input.removeAttribute('readonly');
+  input.focus();
+  input.parentElement.querySelector('button').outerHTML = `<button onclick="savePrediction(${matchId}, '${player}')">Save</button>`;
+}
+
+async function saveResult(matchId) {
+  const input = document.getElementById(`result-${matchId}`);
+  const result = input.value.trim();
+
+  if (!result) {
+    alert('Please enter a result');
+    return;
+  }
+
+  await fetch(`/api/matches/${matchId}/result`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ result })
+  });
+
+  await refresh();
+}
+
+async function enableResultEdit(matchId) {
+  const input = document.getElementById(`result-${matchId}`);
+  input.removeAttribute('readonly');
+  input.focus();
+  input.parentElement.querySelector('button').outerHTML = `<button onclick="saveResult(${matchId})">Save</button>`;
+}
+
+async function updatePrediction(matchId, player, prediction) {
+  await fetch(`/api/matches/${matchId}/prediction`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ player, prediction })
+  });
+
+  await refresh();
+}
+
+async function updateResult(matchId, result) {
+  await fetch(`/api/matches/${matchId}/result`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ result })
+  });
+
+  await refresh();
+}
+
+async function deleteMatch(matchId) {
+  if (!confirm('Delete this match?')) return;
+
+  await fetch(`/api/matches/${matchId}`, {
+    method: 'DELETE'
+  });
+
+  await refresh();
+}
+
+function toggleMatch(matchId) {
+  const content = document.getElementById(`content-${matchId}`);
+  const icon = document.getElementById(`collapse-${matchId}`);
+
+  if (content.style.display === 'none') {
+    content.style.display = 'block';
+    icon.textContent = '▼';
+  } else {
+    content.style.display = 'none';
+    icon.textContent = '▶';
+  }
+}
+
+async function saveAll(matchId) {
+  const promises = [];
+
+  // Save result
+  const resultInput = document.getElementById(`result-${matchId}`);
+  const result = resultInput.value.trim();
+  if (result) {
+    promises.push(
+      fetch(`/api/matches/${matchId}/result`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ result })
+      })
+    );
+  }
+
+  // Save all predictions
+  PLAYERS.forEach(player => {
+    const predInput = document.getElementById(`pred-${matchId}-${player}`);
+    const prediction = predInput.value.trim();
+    if (prediction) {
+      promises.push(
+        fetch(`/api/matches/${matchId}/prediction`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ player, prediction })
+        })
+      );
+    }
+  });
+
+  if (promises.length === 0) {
+    alert('No changes to save');
+    return;
+  }
+
+  await Promise.all(promises);
+  await refresh();
+}
+
+async function refresh() {
+  await Promise.all([loadRankings(), loadMatches()]);
+}
+
+refresh();

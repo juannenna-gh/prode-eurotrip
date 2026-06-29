@@ -1,0 +1,275 @@
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const session = require('express-session');
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+
+require('dotenv').config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+const DATA_FILE = path.join(__dirname, 'data.json');
+
+app.use(express.json());
+app.use(express.static('public'));
+
+// Session configuration
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'default-secret-change-in-production',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: process.env.NODE_ENV === 'production' }
+}));
+
+// Passport configuration
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.serializeUser((user, done) => {
+  done(null, user);
+});
+
+passport.deserializeUser((user, done) => {
+  done(null, user);
+});
+
+passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: `${process.env.SERVER_URL}/auth/google/callback`
+  },
+  (accessToken, refreshToken, profile, done) => {
+    const user = {
+      id: profile.id,
+      email: profile.emails[0].value,
+      name: profile.displayName
+    };
+    return done(null, user);
+  }
+));
+
+// Middleware to check if user is admin
+function isAdmin(req, res, next) {
+  if (req.isAuthenticated() && req.user.email === process.env.ADMIN_EMAIL) {
+    return next();
+  }
+  res.status(403).json({ error: 'Unauthorized' });
+}
+
+// Middleware to check if user is authenticated
+function isAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.status(401).json({ error: 'Not authenticated' });
+}
+
+const PLAYERS = ['Martin', 'Joaquin', 'Pablo', 'Franco', 'Fede', 'Juan'];
+
+let data = {
+  matches: [],
+  nextMatchId: 1
+};
+
+function loadData() {
+  try {
+    if (fs.existsSync(DATA_FILE)) {
+      const fileData = fs.readFileSync(DATA_FILE, 'utf8');
+      data = JSON.parse(fileData);
+      console.log('Data loaded from file');
+    }
+  } catch (error) {
+    console.error('Error loading data:', error);
+  }
+}
+
+function saveData() {
+  try {
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+  } catch (error) {
+    console.error('Error saving data:', error);
+  }
+}
+
+function calculatePoints(prediction, actual) {
+  if (!actual) return 0;
+
+  const [predHome, predAway] = prediction.split('-').map(Number);
+  const [actHome, actAway] = actual.split('-').map(Number);
+
+  if (predHome === actHome && predAway === actAway) {
+    return 3;
+  }
+
+  const predOutcome = predHome > predAway ? 'home' : predHome < predAway ? 'away' : 'draw';
+  const actOutcome = actHome > actAway ? 'home' : actHome < actAway ? 'away' : 'draw';
+
+  if (predOutcome === actOutcome) {
+    return 1;
+  }
+
+  return 0;
+}
+
+// Authentication routes
+app.get('/auth/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+app.get('/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: '/login.html' }),
+  (req, res) => {
+    res.redirect('/admin.html');
+  }
+);
+
+app.get('/auth/logout', (req, res) => {
+  req.logout((err) => {
+    if (err) return res.status(500).json({ error: 'Logout failed' });
+    res.redirect('/view.html');
+  });
+});
+
+app.get('/auth/status', (req, res) => {
+  if (req.isAuthenticated()) {
+    res.json({
+      authenticated: true,
+      isAdmin: req.user.email === process.env.ADMIN_EMAIL,
+      user: {
+        name: req.user.name,
+        email: req.user.email
+      }
+    });
+  } else {
+    res.json({ authenticated: false, isAdmin: false });
+  }
+});
+
+// Public routes
+app.get('/api/matches', (req, res) => {
+  res.json(data.matches);
+});
+
+app.get('/api/rankings', (req, res) => {
+  const rankings = PLAYERS.map(player => {
+    let points = 0;
+    let exactos = 0;
+    let acertados = 0;
+    let errados = 0;
+
+    data.matches.forEach(match => {
+      const prediction = match.predictions[player];
+      if (prediction && match.actualResult) {
+        const pts = calculatePoints(prediction, match.actualResult);
+        points += pts;
+
+        if (pts === 3) {
+          exactos++;
+          acertados++;
+        } else if (pts === 1) {
+          acertados++;
+        } else {
+          errados++;
+        }
+      }
+    });
+
+    return { player, points, exactos, acertados, errados };
+  });
+
+  rankings.sort((a, b) => b.points - a.points);
+  res.json(rankings);
+});
+
+// Protected admin routes
+app.post('/api/matches', isAdmin, (req, res) => {
+  const { teamA, teamB } = req.body;
+  const match = {
+    id: data.nextMatchId++,
+    teamA,
+    teamB,
+    actualResult: null,
+    predictions: {}
+  };
+
+  PLAYERS.forEach(player => {
+    match.predictions[player] = null;
+  });
+
+  data.matches.push(match);
+  saveData();
+  res.json(match);
+});
+
+app.put('/api/matches/:id/prediction', isAdmin, (req, res) => {
+  const { id } = req.params;
+  const { player, prediction } = req.body;
+
+  const match = data.matches.find(m => m.id === parseInt(id));
+  if (!match) {
+    return res.status(404).json({ error: 'Match not found' });
+  }
+
+  match.predictions[player] = prediction;
+  saveData();
+  res.json(match);
+});
+
+app.put('/api/matches/:id/result', isAdmin, (req, res) => {
+  const { id } = req.params;
+  const { result } = req.body;
+
+  const match = data.matches.find(m => m.id === parseInt(id));
+  if (!match) {
+    return res.status(404).json({ error: 'Match not found' });
+  }
+
+  match.actualResult = result;
+  saveData();
+  res.json(match);
+});
+
+app.delete('/api/matches/:id', isAdmin, (req, res) => {
+  const { id } = req.params;
+  data.matches = data.matches.filter(m => m.id !== parseInt(id));
+  saveData();
+  res.json({ success: true });
+});
+
+app.get('/api/rankings', (req, res) => {
+  const rankings = PLAYERS.map(player => {
+    let points = 0;
+    let exactos = 0;
+    let acertados = 0;
+    let errados = 0;
+
+    data.matches.forEach(match => {
+      const prediction = match.predictions[player];
+      if (prediction && match.actualResult) {
+        const pts = calculatePoints(prediction, match.actualResult);
+        points += pts;
+
+        if (pts === 3) {
+          exactos++;
+          acertados++;
+        } else if (pts === 1) {
+          acertados++;
+        } else {
+          errados++;
+        }
+      }
+    });
+
+    return { player, points, exactos, acertados, errados };
+  });
+
+  rankings.sort((a, b) => b.points - a.points);
+  res.json(rankings);
+});
+
+loadData();
+
+app.listen(PORT, () => {
+  console.log(`World Cup Tracker running at http://localhost:${PORT}`);
+});
