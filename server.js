@@ -132,12 +132,19 @@ app.get('/login', (req, res) => {
 });
 
 app.get('/admin', (req, res) => {
+  console.log('/admin route - Session ID:', req.sessionID);
+  console.log('/admin route - Is authenticated:', req.isAuthenticated());
+  console.log('/admin route - User:', req.user);
+
   if (!req.isAuthenticated()) {
+    console.log('/admin route - Not authenticated, redirecting to login');
     return res.redirect('/login');
   }
   if (req.user.email !== process.env.ADMIN_EMAIL) {
+    console.log('/admin route - Not admin, redirecting to view');
     return res.redirect('/view');
   }
+  console.log('/admin route - Success, sending admin page');
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
