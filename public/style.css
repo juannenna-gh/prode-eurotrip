@@ -41,22 +41,11 @@ h2 {
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 600px;
 }
 
-.section table {
-  display: block;
+.section {
   overflow-x: auto;
-  white-space: nowrap;
   -webkit-overflow-scrolling: touch;
-}
-
-.section table thead,
-.section table tbody,
-.section table tr {
-  display: table;
-  width: 100%;
-  table-layout: auto;
 }
 
 thead {
