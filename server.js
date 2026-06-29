@@ -31,10 +31,7 @@ app.use(express.static('public', {
 // Session configuration
 const sessionStore = MongoStore.create({
   mongoUrl: process.env.MONGODB_URI,
-  touchAfter: 24 * 3600,
-  crypto: {
-    secret: process.env.SESSION_SECRET || 'default-secret-change-in-production'
-  }
+  touchAfter: 24 * 3600
 });
 
 sessionStore.on('error', function(error) {
@@ -50,8 +47,7 @@ app.use(session({
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
     maxAge: 7 * 24 * 60 * 60 * 1000,
-    sameSite: 'lax',
-    domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined
+    sameSite: 'lax'
   },
   name: 'prode.sid'
 }));
