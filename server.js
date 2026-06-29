@@ -29,20 +29,31 @@ app.use(express.static('public', {
 }));
 
 // Session configuration
+const sessionStore = MongoStore.create({
+  mongoUrl: process.env.MONGODB_URI,
+  touchAfter: 24 * 3600,
+  crypto: {
+    secret: process.env.SESSION_SECRET || 'default-secret-change-in-production'
+  }
+});
+
+sessionStore.on('error', function(error) {
+  console.error('Session store error:', error);
+});
+
 app.use(session({
   secret: process.env.SESSION_SECRET || 'default-secret-change-in-production',
   resave: true,
-  saveUninitialized: false,
-  store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI,
-    touchAfter: 24 * 3600 // lazy session update
-  }),
+  saveUninitialized: true,
+  store: sessionStore,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    sameSite: 'lax'
-  }
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    sameSite: 'lax',
+    domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined
+  },
+  name: 'prode.sid'
 }));
 
 // Passport configuration
@@ -155,11 +166,22 @@ app.get('/auth/google',
 app.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/login' }),
   (req, res) => {
-    if (req.user.email === process.env.ADMIN_EMAIL) {
-      res.redirect('/admin');
-    } else {
-      res.redirect('/view');
-    }
+    console.log('OAuth callback - User:', req.user?.email);
+    console.log('Session ID:', req.sessionID);
+    console.log('Is authenticated:', req.isAuthenticated());
+
+    req.session.save((err) => {
+      if (err) {
+        console.error('Session save error:', err);
+        return res.redirect('/login');
+      }
+
+      if (req.user.email === process.env.ADMIN_EMAIL) {
+        res.redirect('/admin');
+      } else {
+        res.redirect('/view');
+      }
+    });
   }
 );
 
