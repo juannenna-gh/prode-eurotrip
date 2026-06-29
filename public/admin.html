@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -66,26 +66,26 @@
 </head>
 <body>
   <div class="container">
-    <h1>⚽ PRODE Eurotrip 3021 - Admin Panel</h1>
+    <h1>⚽ PRODE Eurotrip 3021 - Panel de Administración</h1>
 
     <div class="admin-header">
       <div class="admin-info">
-        <span>👤 <span id="user-name">Loading...</span></span>
+        <span>👤 <span id="user-name">Cargando...</span></span>
       </div>
       <div>
-        <a href="/view" class="view-public-btn">View Public Page</a>
-        <a href="/auth/logout" class="logout-btn">Logout</a>
+        <a href="/view" class="view-public-btn">Ver Página Pública</a>
+        <a href="/auth/logout" class="logout-btn">Cerrar Sesión</a>
       </div>
     </div>
 
     <div class="section">
-      <h2>Rankings</h2>
+      <h2>Tabla de Posiciones</h2>
       <table id="rankings-table">
         <thead>
           <tr>
-            <th>Rank</th>
-            <th>Player</th>
-            <th>Points</th>
+            <th>Pos</th>
+            <th>Jugador</th>
+            <th>Puntos</th>
             <th>Exactos</th>
             <th>Acertados</th>
             <th>Errados</th>
@@ -96,23 +96,23 @@
     </div>
 
     <div class="section">
-      <h2>Rankings Evolution</h2>
+      <h2>Evolución de Posiciones</h2>
       <canvas id="rankings-chart"></canvas>
     </div>
 
     <div class="section">
-      <h2>Add New Match</h2>
+      <h2>Agregar Nuevo Partido</h2>
       <div class="add-match-form">
         <input type="text" id="teamA" placeholder="ARG" maxlength="3">
         <span>vs</span>
         <input type="text" id="teamB" placeholder="BRA" maxlength="3">
-        <button onclick="addMatch()">Add Match</button>
+        <button onclick="addMatch()">Agregar Partido</button>
       </div>
-      <p style="color: #666; font-size: 12px; margin-top: 10px;">Use 3-letter codes: ARG, BRA, ESP, GER, etc.</p>
+      <p style="color: #666; font-size: 12px; margin-top: 10px;">Usar códigos de 3 letras: ARG, BRA, ESP, GER, etc.</p>
     </div>
 
     <div class="section">
-      <h2>Matches</h2>
+      <h2>Partidos</h2>
       <div id="matches-container"></div>
     </div>
   </div>

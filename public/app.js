@@ -248,7 +248,7 @@ async function loadMatches() {
   const container = document.getElementById('matches-container');
 
   if (matches.length === 0) {
-    container.innerHTML = '<p style="color: #999;">No matches yet. Add one above!</p>';
+    container.innerHTML = '<p style="color: #999;">Aún no hay partidos. ¡Agrega uno arriba!</p>';
     return;
   }
 
@@ -258,8 +258,8 @@ async function loadMatches() {
         <div class="match-teams">${formatTeam(match.teamA)} vs ${formatTeam(match.teamB)}</div>
         <div>
           <span class="collapse-icon" id="collapse-${match.id}">▶</span>
-          <button class="save-all-btn" onclick="event.stopPropagation(); saveAll(${match.id})">Save All</button>
-          <button class="delete-btn" onclick="event.stopPropagation(); deleteMatch(${match.id})">Delete</button>
+          <button class="save-all-btn" onclick="event.stopPropagation(); saveAll(${match.id})">Guardar Todo</button>
+          <button class="delete-btn" onclick="event.stopPropagation(); deleteMatch(${match.id})">Eliminar</button>
         </div>
       </div>
 
@@ -274,8 +274,8 @@ async function loadMatches() {
             ${match.actualResult ? 'readonly' : ''}
           >
           ${match.actualResult
-            ? `<button onclick="enableResultEdit(${match.id})">Edit</button>`
-            : `<button onclick="saveResult(${match.id})">Save</button>`
+            ? `<button onclick="enableResultEditar(${match.id})">Editar</button>`
+            : `<button onclick="saveResult(${match.id})">Guardar</button>`
           }
         </div>
 
@@ -298,8 +298,8 @@ async function loadMatches() {
                   ${prediction ? 'readonly' : ''}
                 >
                 ${prediction
-                  ? `<button onclick="enablePredictionEdit(${match.id}, '${player}')">Edit</button>`
-                  : `<button onclick="savePrediction(${match.id}, '${player}')">Save</button>`
+                  ? `<button onclick="enablePredictionEditar(${match.id}, '${player}')">Editar</button>`
+                  : `<button onclick="savePrediction(${match.id}, '${player}')">Guardar</button>`
                 }
                 <span class="points ${pointsClass}">${match.actualResult ? points + 'pt' : '-'}</span>
               </div>
@@ -338,12 +338,12 @@ async function addMatch() {
   const teamB = document.getElementById('teamB').value.trim().toUpperCase();
 
   if (!teamA || !teamB) {
-    alert('Please enter both teams');
+    alert('Por favor ingresa ambos equipos');
     return;
   }
 
   if (!COUNTRIES[teamA] || !COUNTRIES[teamB]) {
-    alert('Please use valid 3-letter country codes (e.g., ARG, BRA, ESP)');
+    alert('Por favor usa códigos de 3 letras válidos (ej: ARG, BRA, ESP)');
     return;
   }
 
@@ -364,7 +364,7 @@ async function savePrediction(matchId, player) {
   const prediction = input.value.trim();
 
   if (!prediction) {
-    alert('Please enter a prediction');
+    alert('Por favor ingresa una predicción');
     return;
   }
 
@@ -377,11 +377,11 @@ async function savePrediction(matchId, player) {
   await refresh();
 }
 
-async function enablePredictionEdit(matchId, player) {
+async function enablePredictionEditar(matchId, player) {
   const input = document.getElementById(`pred-${matchId}-${player}`);
   input.removeAttribute('readonly');
   input.focus();
-  input.parentElement.querySelector('button').outerHTML = `<button onclick="savePrediction(${matchId}, '${player}')">Save</button>`;
+  input.parentElement.querySelector('button').outerHTML = `<button onclick="savePrediction(${matchId}, '${player}')">Guardar</button>`;
 }
 
 async function saveResult(matchId) {
@@ -389,7 +389,7 @@ async function saveResult(matchId) {
   const result = input.value.trim();
 
   if (!result) {
-    alert('Please enter a result');
+    alert('Por favor ingresa un resultado');
     return;
   }
 
@@ -402,11 +402,11 @@ async function saveResult(matchId) {
   await refresh();
 }
 
-async function enableResultEdit(matchId) {
+async function enableResultEditar(matchId) {
   const input = document.getElementById(`result-${matchId}`);
   input.removeAttribute('readonly');
   input.focus();
-  input.parentElement.querySelector('button').outerHTML = `<button onclick="saveResult(${matchId})">Save</button>`;
+  input.parentElement.querySelector('button').outerHTML = `<button onclick="saveResult(${matchId})">Guardar</button>`;
 }
 
 async function updatePrediction(matchId, player, prediction) {
@@ -430,7 +430,7 @@ async function updateResult(matchId, result) {
 }
 
 async function deleteMatch(matchId) {
-  if (!confirm('Delete this match?')) return;
+  if (!confirm('Eliminar this match?')) return;
 
   await fetch(`/api/matches/${matchId}`, {
     method: 'DELETE'
@@ -455,7 +455,7 @@ function toggleMatch(matchId) {
 async function saveAll(matchId) {
   const promises = [];
 
-  // Save result
+  // Guardar result
   const resultInput = document.getElementById(`result-${matchId}`);
   const result = resultInput.value.trim();
   if (result) {
@@ -468,7 +468,7 @@ async function saveAll(matchId) {
     );
   }
 
-  // Save all predictions
+  // Guardar all predictions
   PLAYERS.forEach(player => {
     const predInput = document.getElementById(`pred-${matchId}-${player}`);
     const prediction = predInput.value.trim();
@@ -484,7 +484,7 @@ async function saveAll(matchId) {
   });
 
   if (promises.length === 0) {
-    alert('No changes to save');
+    alert('No hay cambios para guardar');
     return;
   }
 
