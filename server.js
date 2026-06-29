@@ -4,6 +4,8 @@ const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 const db = require('./database');
 
 require('dotenv').config();
@@ -14,6 +16,7 @@ const PORT = process.env.PORT || 3000;
 const PLAYERS = ['Martin', 'Joaquin', 'Pablo', 'Franco', 'Fede', 'Juan'];
 
 app.use(express.json());
+app.use(cookieParser());
 
 // Custom middleware to block direct HTML access
 app.use((req, res, next) => {
@@ -79,20 +82,49 @@ passport.use(new GoogleStrategy({
   }
 ));
 
+// Helper function to create JWT token
+function createAuthToken(user) {
+  return jwt.sign(
+    { id: user.id, email: user.email, name: user.name },
+    process.env.SESSION_SECRET,
+    { expiresIn: '7d' }
+  );
+}
+
+// Helper function to verify JWT token
+function verifyAuthToken(token) {
+  try {
+    return jwt.verify(token, process.env.SESSION_SECRET);
+  } catch (err) {
+    return null;
+  }
+}
+
+// Middleware to check authentication via JWT
+function isAuthenticatedJWT(req, res, next) {
+  const token = req.cookies.auth_token;
+  if (!token) {
+    req.user = null;
+    return next();
+  }
+
+  const user = verifyAuthToken(token);
+  if (user) {
+    req.user = user;
+  } else {
+    req.user = null;
+  }
+  next();
+}
+
+app.use(isAuthenticatedJWT);
+
 // Middleware to check if user is admin
 function isAdmin(req, res, next) {
-  if (req.isAuthenticated() && req.user.email === process.env.ADMIN_EMAIL) {
+  if (req.user && req.user.email === process.env.ADMIN_EMAIL) {
     return next();
   }
   res.status(403).json({ error: 'Unauthorized' });
-}
-
-// Middleware to check if user is authenticated
-function isAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) {
-    return next();
-  }
-  res.status(401).json({ error: 'Not authenticated' });
 }
 
 function calculatePoints(prediction, actual) {
@@ -121,7 +153,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-  if (req.isAuthenticated()) {
+  if (req.user) {
     if (req.user.email === process.env.ADMIN_EMAIL) {
       return res.redirect('/admin');
     } else {
@@ -132,11 +164,9 @@ app.get('/login', (req, res) => {
 });
 
 app.get('/admin', (req, res) => {
-  console.log('/admin route - Session ID:', req.sessionID);
-  console.log('/admin route - Is authenticated:', req.isAuthenticated());
   console.log('/admin route - User:', req.user);
 
-  if (!req.isAuthenticated()) {
+  if (!req.user) {
     console.log('/admin route - Not authenticated, redirecting to login');
     return res.redirect('/login');
   }
@@ -170,33 +200,33 @@ app.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/login' }),
   (req, res) => {
     console.log('OAuth callback - User:', req.user?.email);
-    console.log('Session ID:', req.sessionID);
-    console.log('Is authenticated:', req.isAuthenticated());
 
-    req.session.save((err) => {
-      if (err) {
-        console.error('Session save error:', err);
-        return res.redirect('/login');
-      }
+    // Create JWT token
+    const token = createAuthToken(req.user);
 
-      if (req.user.email === process.env.ADMIN_EMAIL) {
-        res.redirect('/admin');
-      } else {
-        res.redirect('/view');
-      }
+    // Set cookie
+    res.cookie('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      sameSite: 'lax'
     });
+
+    if (req.user.email === process.env.ADMIN_EMAIL) {
+      res.redirect('/admin');
+    } else {
+      res.redirect('/view');
+    }
   }
 );
 
 app.get('/auth/logout', (req, res) => {
-  req.logout((err) => {
-    if (err) return res.status(500).json({ error: 'Logout failed' });
-    res.redirect('/login');
-  });
+  res.clearCookie('auth_token');
+  res.redirect('/login');
 });
 
 app.get('/auth/status', (req, res) => {
-  if (req.isAuthenticated()) {
+  if (req.user) {
     res.json({
       authenticated: true,
       isAdmin: req.user.email === process.env.ADMIN_EMAIL,
