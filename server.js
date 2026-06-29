@@ -31,7 +31,7 @@ app.use(express.static('public', {
 // Session configuration
 app.use(session({
   secret: process.env.SESSION_SECRET || 'default-secret-change-in-production',
-  resave: false,
+  resave: true,
   saveUninitialized: false,
   store: MongoStore.create({
     mongoUrl: process.env.MONGODB_URI,
