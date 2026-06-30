@@ -54,6 +54,12 @@
 
     <div class="section">
       <h2>Partidos</h2>
+      <div style="margin-bottom: 15px;">
+        <label for="player-filter" style="margin-right: 10px;">Filtrar por jugador:</label>
+        <select id="player-filter" onchange="loadMatches()" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: white; cursor: pointer;">
+          <option value="">Todos</option>
+        </select>
+      </div>
       <div id="matches-container"></div>
     </div>
   </div>
