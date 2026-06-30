@@ -285,13 +285,19 @@ async function loadMatches() {
   const matches = await response.json();
 
   const container = document.getElementById('matches-container');
+  const filterSelect = document.getElementById('player-filter');
+  const selectedPlayer = filterSelect ? filterSelect.value : '';
 
   if (matches.length === 0) {
     container.innerHTML = '<p style="color: #999;">Aún no hay partidos. ¡Agrega uno arriba!</p>';
     return;
   }
 
-  container.innerHTML = matches.map(match => `
+  container.innerHTML = matches.map(match => {
+    // Determine which players to show based on filter
+    const playersToShow = selectedPlayer ? [selectedPlayer] : PLAYERS;
+
+    return `
     <div class="match-card">
       <div class="match-header" onclick="toggleMatch(${match.id})">
         <div class="match-teams">${formatTeam(match.teamA)} vs ${formatTeam(match.teamB)}</div>
@@ -319,7 +325,7 @@ async function loadMatches() {
         </div>
 
         <div class="predictions-list">
-          ${PLAYERS.map(player => {
+          ${playersToShow.map(player => {
             const prediction = match.predictions[player];
             const points = calculatePoints(prediction, match.actualResult);
             const pointsClass = !match.actualResult ? 'pending' :
@@ -347,7 +353,8 @@ async function loadMatches() {
         </div>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 function calculatePoints(prediction, actual) {
@@ -535,4 +542,18 @@ async function refresh() {
   await Promise.all([loadRankings(), loadMatches()]);
 }
 
+function initializePlayerFilter() {
+  const filterSelect = document.getElementById('player-filter');
+  if (filterSelect && filterSelect.options.length === 1) {
+    // Only add options if they haven't been added yet
+    PLAYERS.forEach(player => {
+      const option = document.createElement('option');
+      option.value = player;
+      option.textContent = player;
+      filterSelect.appendChild(option);
+    });
+  }
+}
+
+initializePlayerFilter();
 refresh();
