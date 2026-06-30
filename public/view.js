@@ -272,7 +272,8 @@ async function loadRankingsChart() {
           ticks: {
             stepSize: 1,
             callback: function(value) {
-              if (value >= 1 && value <= PLAYERS.length) {
+              // Only show whole numbers
+              if (Number.isInteger(value) && value >= 1 && value <= PLAYERS.length) {
                 return value + '°';
               }
               return '';
