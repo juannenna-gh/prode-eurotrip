@@ -245,6 +245,12 @@ async function loadRankingsChart() {
     options: {
       responsive: true,
       maintainAspectRatio: true,
+      layout: {
+        padding: {
+          top: 20,
+          bottom: 10
+        }
+      },
       interaction: {
         mode: 'index',
         intersect: false,
@@ -261,12 +267,15 @@ async function loadRankingsChart() {
         y: {
           reverse: true,
           beginAtZero: false,
-          min: 1,
-          max: PLAYERS.length,
+          min: 0.5,
+          max: PLAYERS.length + 0.5,
           ticks: {
             stepSize: 1,
             callback: function(value) {
-              return value + '°';
+              if (value >= 1 && value <= PLAYERS.length) {
+                return value + '°';
+              }
+              return '';
             }
           },
           title: {
