@@ -184,25 +184,45 @@ async function loadRankingsChart() {
     return;
   }
 
-  const pointsHistory = {};
+  const rankingHistory = {};
   PLAYERS.forEach(player => {
-    pointsHistory[player] = [0];
+    rankingHistory[player] = [PLAYERS.length];
   });
 
   completedMatches.forEach(match => {
+    // Calculate cumulative points up to this match
+    const currentPoints = {};
     PLAYERS.forEach(player => {
-      const lastPoints = pointsHistory[player][pointsHistory[player].length - 1];
-      const prediction = match.predictions[player];
-      const points = calculatePoints(prediction, match.actualResult);
-      pointsHistory[player].push(lastPoints + points);
+      currentPoints[player] = 0;
+    });
+
+    const matchIndex = completedMatches.indexOf(match);
+    for (let i = 0; i <= matchIndex; i++) {
+      const m = completedMatches[i];
+      PLAYERS.forEach(player => {
+        const prediction = m.predictions[player];
+        const points = calculatePoints(prediction, m.actualResult);
+        currentPoints[player] += points;
+      });
+    }
+
+    // Convert points to rankings (1 = first place, higher number = lower rank)
+    const sortedPlayers = [...PLAYERS].sort((a, b) => currentPoints[b] - currentPoints[a]);
+    const rankings = {};
+    sortedPlayers.forEach((player, index) => {
+      rankings[player] = index + 1;
+    });
+
+    PLAYERS.forEach(player => {
+      rankingHistory[player].push(rankings[player]);
     });
   });
 
-  const labels = ['Start', ...completedMatches.map((m, i) => `Match ${i + 1}`)];
+  const labels = ['Inicio', ...completedMatches.map((m, i) => `Partido ${i + 1}`)];
 
   const datasets = PLAYERS.map(player => ({
     label: player,
-    data: pointsHistory[player],
+    data: rankingHistory[player],
     borderColor: PLAYER_COLORS[player],
     backgroundColor: PLAYER_COLORS[player] + '20',
     tension: 0.4,
@@ -239,9 +259,19 @@ async function loadRankingsChart() {
       },
       scales: {
         y: {
-          beginAtZero: true,
+          reverse: true,
+          beginAtZero: false,
+          min: 1,
+          max: PLAYERS.length,
           ticks: {
-            stepSize: 1
+            stepSize: 1,
+            callback: function(value) {
+              return value + '°';
+            }
+          },
+          title: {
+            display: true,
+            text: 'Posición'
           }
         }
       }
