@@ -324,19 +324,22 @@ button.save-all-btn:hover {
 .prediction-item-view .prediction-value-partial {
   font-family: 'Courier New', monospace;
   font-size: 1.1em;
-  color: #e1ea66;
+  color: #ecd119;
+  font-weight: bold;
   min-width: 50px;
 }
 .prediction-item-view .prediction-value-exact {
   font-family: 'Courier New', monospace;
   font-size: 1.1em;
-  color: #66ea78;
+  color: #00cb1c;
+  font-weight: bold;
   min-width: 50px;
 }
 .prediction-item-view .prediction-value-wrong {
   font-family: 'Courier New', monospace;
   font-size: 1.1em;
-  color: #ea6f66;
+  color: #bc1307;
+  font-weight: bold;
   min-width: 50px;
 }
 
