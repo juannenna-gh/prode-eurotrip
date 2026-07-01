@@ -292,6 +292,11 @@ async function loadRankingsChart() {
 async function loadMatches() {
   const response = await fetch('/api/matches');
   const matches = await response.json();
+  const valueClass = {
+    "0":"wrong",
+    "1":"partial",
+    "3":"exact"
+  }
 
   const container = document.getElementById('matches-container');
   const filterSelect = document.getElementById('player-filter');
@@ -326,7 +331,7 @@ async function loadMatches() {
             return `
               <div class="prediction-item-view">
                 <span class="player-name">${player}</span>
-                <span class="prediction-value">${prediction || '-'}</span>
+                <span class="prediction-value-${valueClass[points]}">${prediction || '-'}</span>
                 <span class="points ${pointsClass}">${points}pt</span>
               </div>
             `;

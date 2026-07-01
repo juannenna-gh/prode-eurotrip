@@ -321,6 +321,24 @@ button.save-all-btn:hover {
   color: #667eea;
   min-width: 50px;
 }
+.prediction-item-view .prediction-value-partial {
+  font-family: 'Courier New', monospace;
+  font-size: 1.1em;
+  color: #e1ea66;
+  min-width: 50px;
+}
+.prediction-item-view .prediction-value-exact {
+  font-family: 'Courier New', monospace;
+  font-size: 1.1em;
+  color: #66ea78;
+  min-width: 50px;
+}
+.prediction-item-view .prediction-value-wrong {
+  font-family: 'Courier New', monospace;
+  font-size: 1.1em;
+  color: #ea6f66;
+  min-width: 50px;
+}
 
 .prediction-item-view .points {
   margin-left: auto;
